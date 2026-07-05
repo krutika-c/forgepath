@@ -9,11 +9,6 @@
 **Try ForgePath here:**  
 https://forgepath-4eiy.onrender.com
 
-## 🔗 Repository
-
-**GitHub:**  
-https://github.com/your-username/forgepath
-
 ---
 
 ## 🛠️ Tech Stack
