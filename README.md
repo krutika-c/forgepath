@@ -4,6 +4,37 @@
 
 ---
 
+## 🌐 Live Demo
+
+**Try ForgePath here:**  
+https://forgepath-4eiy.onrender.com
+
+## 🔗 Repository
+
+**GitHub:**  
+https://github.com/your-username/forgepath
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+- HTML5
+- CSS3
+- JavaScript
+
+### Backend
+- Node.js
+- Express.js
+
+### AI
+- Google Gemini API
+
+### Deployment
+- Render
+
+---
+
 ## Why this is more than a ChatGPT wrapper
 
 | | |
@@ -37,7 +68,7 @@
 
 ---
 
-## Project structure
+## Project Structure
 
 ```text
 forgepath/
@@ -45,7 +76,6 @@ forgepath/
 │   ├── index.html
 │   ├── index.css
 │   └── index.js
-├── node_modules/
 ├── .env
 ├── .gitignore
 ├── package-lock.json
@@ -99,7 +129,7 @@ Visit `http://localhost:3002` (or whatever `PORT` you set).
 
 ---
 
-## API reference
+## API Reference
 
 | Endpoint | Method | Purpose |
 | :--- | :--- | :--- |
@@ -111,9 +141,15 @@ All three set `X-RateLimit-Limit-Daily` and `X-RateLimit-Remaining-Daily` respon
 
 ---
 
-## Security & cost notes
+## Security & Cost Notes
 
 - Your Gemini API key lives only in `.env` on the server and is never sent to the browser.
 - `.env` is git-ignored by default (see `.gitignore`) — don't remove that line.
 - Recommendations aren't stored anywhere server-side. Favorites are saved only in your own browser's `localStorage`.
 - Because LLM calls cost real money, this repo ships with rate limiting, a global daily cap, and response caching turned on by default — tune `DAILY_REQUEST_LIMIT` and `CACHE_TTL_MINUTES` to whatever you're comfortable spending before deploying this publicly.
+
+---
+
+## License
+
+This project is open source and available under the **MIT License**.
