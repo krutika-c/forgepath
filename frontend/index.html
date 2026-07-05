@@ -97,10 +97,16 @@
 
       <div class="blueprint__footer">
         <p class="form-error" id="formError" hidden></p>
-        <button class="btn btn--primary btn--lg" id="generateBtn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
-          Generate my project
-        </button>
+        <div class="generate-row">
+          <button class="btn btn--primary btn--lg" id="generateBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+            Generate my project
+          </button>
+          <span class="usage-pill" id="usagePill" hidden>
+            <span class="usage-pill__dot" aria-hidden="true"></span>
+            <span id="usageText">generations left today</span>
+          </span>
+        </div>
       </div>
     </section>
 

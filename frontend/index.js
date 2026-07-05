@@ -31,6 +31,13 @@
   const errorMessage = $('#errorMessage');
   const projectCard = $('#projectCard');
   const toast = $('#toast');
+  const usagePill = $('#usagePill');
+  const usageText = $('#usageText');
+
+  // Sections that support "regenerate just this part" instead of the whole project.
+  const REGENERATABLE_SECTIONS = new Set([
+    'whyBestFit', 'keyFeatures', 'technologies', 'suggestedApis', 'skillsLearned', 'roadmap', 'stretchGoals'
+  ]);
 
   /* ============ Build tag selectors ============ */
   function renderTagSelectors() {
@@ -106,6 +113,8 @@
       body: JSON.stringify({ profile, avoidTitles })
     });
 
+    updateUsageFromResponse(res);
+
     let data;
     try {
       data = await res.json();
@@ -120,6 +129,32 @@
     }
 
     return data;
+  }
+
+  /* ============ "Generations left today" indicator ============ */
+  function renderUsagePill(remaining, limit) {
+    if (!usagePill || !usageText || remaining == null || limit == null || Number.isNaN(remaining) || Number.isNaN(limit)) return;
+    usageText.textContent = `${remaining} / ${limit} left today`;
+    const isLow = remaining <= Math.max(1, Math.round(limit * 0.1));
+    usagePill.classList.toggle('usage-pill--low', isLow);
+    usagePill.hidden = false;
+  }
+
+  function updateUsageFromResponse(res) {
+    const remaining = res.headers.get('X-RateLimit-Remaining-Daily');
+    const limit = res.headers.get('X-RateLimit-Limit-Daily');
+    if (remaining === null || limit === null) return;
+    renderUsagePill(Number(remaining), Number(limit));
+  }
+
+  async function loadInitialUsage() {
+    try {
+      const res = await fetch('/api/usage');
+      const data = await res.json();
+      if (res.ok) renderUsagePill(data.remaining, data.limit);
+    } catch (_) {
+      // Non-critical — the pill just stays hidden if this fails.
+    }
   }
 
   /* ============ UI state transitions ============ */
@@ -212,6 +247,81 @@
       </div>`;
   }
 
+  /* ============ Section helpers (support "regenerate this section") ============ */
+  function sectionHeader(title, key) {
+    const btn = REGENERATABLE_SECTIONS.has(key)
+      ? `<button type="button" class="regen-btn" data-regen-section="${key}" title="Regenerate just this section" aria-label="Regenerate ${escapeHtml(title)}">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 0114-5.3M20 12a8 8 0 01-14 5.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M18 3v5h-5M6 21v-5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>`
+      : '';
+    return `<h3 class="section__title">${title}${btn}</h3>`;
+  }
+
+  function sectionBlock(key, title, bodyHtml) {
+    return `
+      <div class="card__section" data-section-block="${key}">
+        ${sectionHeader(title, key)}
+        <div class="section__body">${bodyHtml}</div>
+      </div>`;
+  }
+
+  function renderSectionBody(key, value) {
+    switch (key) {
+      case 'roadmap': return renderRoadmap(value);
+      case 'keyFeatures': return renderFeatureList(value);
+      case 'stretchGoals': return renderFeatureList(value);
+      case 'technologies': return renderChips(value);
+      case 'suggestedApis': return renderChips(value, 'chip--steel');
+      case 'skillsLearned': return renderChips(value, 'chip--steel');
+      case 'whyBestFit': return `<div class="callout"><p class="section__text">${escapeHtml(value)}</p></div>`;
+      default: return '';
+    }
+  }
+
+  /* ============ Regenerate a single section ============ */
+  async function handleRegenerateSection(key, btnEl) {
+    if (!state.currentProject) return;
+    const blockBody = document.querySelector(`.card__section[data-section-block="${key}"] .section__body`);
+    if (!blockBody) return;
+
+    btnEl.disabled = true;
+    btnEl.classList.add('is-spinning');
+
+    try {
+      const res = await fetch('/api/regenerate-section', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          profile: state.currentProject.profileSnapshot,
+          project: state.currentProject,
+          section: key
+        })
+      });
+      updateUsageFromResponse(res);
+
+      let data;
+      try {
+        data = await res.json();
+      } catch (_) {
+        throw new Error(`Request failed with status ${res.status}`);
+      }
+      if (!res.ok) throw new Error(data?.error || `Request failed with status ${res.status}`);
+
+      state.currentProject[key] = data.value;
+      blockBody.innerHTML = renderSectionBody(key, data.value);
+      if (state.favorites.includes(state.currentProject)) {
+        persistFavorites();
+      }
+      showToast('Section updated.');
+    } catch (err) {
+      console.error(err);
+      showToast(err.message || 'Could not regenerate this section.');
+    } finally {
+      btnEl.disabled = false;
+      btnEl.classList.remove('is-spinning');
+    }
+  }
+
   function renderProjectCard(project) {
     const isFav = state.favorites.some((f) => f.projectTitle === project.projectTitle && f.savedAt === project.savedAt);
     projectCard.innerHTML = `
@@ -228,45 +338,33 @@
         </div>
         <h2 class="card__title">${escapeHtml(project.projectTitle)}</h2>
         <p class="card__desc">${escapeHtml(project.shortDescription)}</p>
+        ${project.mentorNote ? `
+        <div class="mentor-note">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l9 16H3L12 3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 10v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="17" r="0.9" fill="currentColor"/></svg>
+          <div>
+            <p class="mentor-note__label">Reality check</p>
+            <p class="mentor-note__text">${escapeHtml(project.mentorNote)}</p>
+          </div>
+        </div>` : ''}
       </div>
       <div class="card__body">
         <div class="card__section">
           <h3 class="section__title">Problem it solves</h3>
           <p class="section__text">${escapeHtml(project.problemSolved)}</p>
         </div>
-        <div class="card__section">
-          <h3 class="section__title">Why this fits you</h3>
-          <div class="callout"><p class="section__text">${escapeHtml(project.whyBestFit)}</p></div>
-        </div>
-        <div class="card__section">
-          <h3 class="section__title">Key features</h3>
-          ${renderFeatureList(project.keyFeatures)}
-        </div>
-        <div class="card__section">
-          <h3 class="section__title">Technologies to use</h3>
-          ${renderChips(project.technologies)}
-        </div>
-        ${project.suggestedApis && project.suggestedApis.length ? `
-        <div class="card__section">
-          <h3 class="section__title">Suggested public APIs</h3>
-          ${renderChips(project.suggestedApis, 'chip--steel')}
-        </div>` : ''}
-        <div class="card__section">
-          <h3 class="section__title">Skills you'll learn</h3>
-          ${renderChips(project.skillsLearned, 'chip--steel')}
-        </div>
-        <div class="card__section">
-          <h3 class="section__title">Development roadmap</h3>
-          ${renderRoadmap(project.roadmap)}
-        </div>
+        ${sectionBlock('whyBestFit', 'Why this fits you', `<div class="callout"><p class="section__text">${escapeHtml(project.whyBestFit)}</p></div>`)}
+        ${sectionBlock('keyFeatures', 'Key features', renderFeatureList(project.keyFeatures))}
+        ${sectionBlock('technologies', 'Technologies to use', renderChips(project.technologies))}
+        ${project.suggestedApis && project.suggestedApis.length
+          ? sectionBlock('suggestedApis', 'Suggested public APIs', renderChips(project.suggestedApis, 'chip--steel'))
+          : ''}
+        ${sectionBlock('skillsLearned', "Skills you'll learn", renderChips(project.skillsLearned, 'chip--steel'))}
+        ${sectionBlock('roadmap', 'Development roadmap', renderRoadmap(project.roadmap))}
         <div class="card__section">
           <h3 class="section__title">Portfolio value</h3>
           <p class="section__text">${escapeHtml(project.portfolioValue)}</p>
         </div>
-        <div class="card__section">
-          <h3 class="section__title">Future improvements &amp; stretch goals</h3>
-          ${renderFeatureList(project.stretchGoals)}
-        </div>
+        ${sectionBlock('stretchGoals', 'Future improvements &amp; stretch goals', renderFeatureList(project.stretchGoals))}
       </div>
       <div class="card__footer-actions">
         <button class="btn btn--secondary" id="regenerateBtn">
@@ -371,9 +469,15 @@
   function init() {
     renderTagSelectors();
     updateFavCount();
+    loadInitialUsage();
 
     generateBtn.addEventListener('click', () => handleGenerate());
     $('#retryBtn').addEventListener('click', () => handleGenerate({ isRegenerate: true }));
+
+    projectCard.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-regen-section]');
+      if (btn) handleRegenerateSection(btn.dataset.regenSection, btn);
+    });
 
     $('#aboutBtn').addEventListener('click', openAbout);
     $('#closeAbout').addEventListener('click', closeAbout);
