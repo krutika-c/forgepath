@@ -149,7 +149,3 @@ All three set `X-RateLimit-Limit-Daily` and `X-RateLimit-Remaining-Daily` respon
 - Because LLM calls cost real money, this repo ships with rate limiting, a global daily cap, and response caching turned on by default — tune `DAILY_REQUEST_LIMIT` and `CACHE_TTL_MINUTES` to whatever you're comfortable spending before deploying this publicly.
 
 ---
-
-## License
-
-This project is open source and available under the **MIT License**.
