@@ -1,0 +1,28 @@
+{
+  "name": "forgepath",
+  "version": "1.0.0",
+  "description": "An AI developer mentor that recommends your next coding project based on your skills, goals, and available time.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/krutika-c/forgepath.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/krutika-c/forgepath/issues"
+  },
+  "homepage": "https://github.com/krutika-c/forgepath#readme",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^5.2.1",
+    "express-rate-limit": "^7.4.1"
+  }
+}

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ForgePath — Find your next build</title>
+<meta name="description" content="ForgePath is an AI mentor that recommends the developer project that best matches your skills, goals, and time.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+<!-- Ambient forge glow backdrop -->
+<div class="glow glow--a" aria-hidden="true"></div>
+<div class="glow glow--b" aria-hidden="true"></div>
+
+<div class="app">
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand__mark" width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 2L4 8v9c0 6.6 4.7 10.4 11 12.6 6.3-2.2 11-6 11-12.6V8L15 2z" stroke="url(#gradMark)" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M11 15.5l2.6 2.6L20 11" stroke="url(#gradMark)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <defs>
+          <linearGradient id="gradMark" x1="4" y1="2" x2="26" y2="30" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#FF7A45"/>
+            <stop offset="1" stop-color="#5B8DEF"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <span class="brand__name">ForgePath</span>
+    </div>
+    <div class="topbar__actions">
+      <button class="icon-btn" id="favoritesBtn" title="Saved projects" aria-label="Saved projects">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 3h12a1 1 0 011 1v17l-7-4-7 4V4a1 1 0 011-1z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        <span id="favCount" class="badge-count" hidden>0</span>
+      </button>
+      <button class="icon-btn" id="aboutBtn" title="About ForgePath" aria-label="About ForgePath">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M12 11v5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="7.8" r="1" fill="currentColor"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- Hero -->
+    <section class="hero">
+      <p class="eyebrow">Your AI development mentor</p>
+      <h1 class="hero__title">Stop guessing. <span class="grad-text">Forge your next project.</span></h1>
+      <p class="hero__sub">Tell ForgePath what you know, what you want, and how much time you have — get one project recommendation built entirely around you, not a generic list.</p>
+    </section>
+
+    <!-- Form -->
+    <section class="blueprint" id="blueprintForm">
+      <div class="blueprint__header">
+        <span class="blueprint__index">Your build sheet</span>
+        <span class="blueprint__hint">Fill in what applies — the more detail, the sharper the fit.</span>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Languages you know</label>
+        <div class="tag-select" data-field="languages" data-mode="multi">
+          <!-- populated by JS -->
+        </div>
+        <input type="text" class="text-input text-input--small" id="languagesOther" placeholder="Other languages (comma separated)">
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Frameworks &amp; libraries</label>
+        <div class="tag-select" data-field="frameworks" data-mode="multi"></div>
+        <input type="text" class="text-input text-input--small" id="frameworksOther" placeholder="Other frameworks/libraries (comma separated)">
+      </div>
+
+      <div class="field-row">
+        <div class="field-group field-group--half">
+          <label class="field-label">Experience level</label>
+          <div class="tag-select" data-field="experience" data-mode="single"></div>
+        </div>
+        <div class="field-group field-group--half">
+          <label class="field-label">Time available</label>
+          <div class="tag-select" data-field="time" data-mode="single"></div>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Primary goal</label>
+        <div class="tag-select" data-field="goal" data-mode="single"></div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Interests</label>
+        <div class="tag-select" data-field="interests" data-mode="multi"></div>
+      </div>
+
+      <div class="blueprint__footer">
+        <p class="form-error" id="formError" hidden></p>
+        <button class="btn btn--primary btn--lg" id="generateBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          Generate my project
+        </button>
+      </div>
+    </section>
+
+    <!-- Result / Empty / Loading / Error states -->
+    <section class="result" id="resultSection">
+
+      <div class="state state--empty" id="emptyState">
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <circle cx="32" cy="32" r="1.5" fill="#3A404C"/>
+          <path d="M12 44c6-14 10-22 20-22s14 8 20 22" stroke="#2A2F3A" stroke-width="1.4" stroke-dasharray="3 5" stroke-linecap="round"/>
+          <circle cx="12" cy="44" r="3" fill="#1D2129" stroke="#3A404C" stroke-width="1.2"/>
+          <circle cx="32" cy="22" r="3" fill="#1D2129" stroke="#3A404C" stroke-width="1.2"/>
+          <circle cx="52" cy="44" r="3" fill="#1D2129" stroke="#3A404C" stroke-width="1.2"/>
+        </svg>
+        <h3>Your blueprint will appear here</h3>
+        <p>Fill in your profile above and generate to see a project built around you.</p>
+      </div>
+
+      <div class="state state--loading" id="loadingState" hidden>
+        <div class="forge-path" aria-hidden="true">
+          <svg width="220" height="60" viewBox="0 0 220 60">
+            <path id="loadPath" d="M10 50 C 60 10, 100 50, 150 20 S 200 10, 210 30" stroke="#2A2F3A" stroke-width="2" fill="none" stroke-dasharray="4 6"/>
+            <circle id="loadDot" r="5" fill="#FF7A45"/>
+          </svg>
+        </div>
+        <h3 id="loadingText">Forging your path…</h3>
+        <p>Analyzing your skills and matching a project against your goals.</p>
+      </div>
+
+      <div class="state state--error" id="errorState" hidden>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#FF6B5E" stroke-width="1.6"/><path d="M12 8v5" stroke="#FF6B5E" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16.2" r="1" fill="#FF6B5E"/></svg>
+        <h3>Something went wrong</h3>
+        <p id="errorMessage">The request failed. Check your connection or API key and try again.</p>
+        <button class="btn btn--secondary" id="retryBtn">Try again</button>
+      </div>
+
+      <article class="project-card" id="projectCard" hidden>
+        <!-- populated by JS -->
+      </article>
+
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>ForgePath doesn't store your data anywhere but this browser. Recommendations are generated by the Gemini API using the key you provide.</p>
+  </footer>
+</div>
+
+<!-- About modal -->
+<div class="modal-overlay" id="aboutOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+    <div class="modal__header">
+      <h2 id="aboutTitle">About ForgePath</h2>
+      <button class="icon-btn" id="closeAbout" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="modal__body">
+      <p class="field-note" style="margin-top:0; font-size: 0.88rem; color: var(--text-secondary);">
+        ForgePath recommends one project tailored to your skills, goals, and time, powered by the Gemini API.
+        The API key lives on the server in a <code>.env</code> file — it never touches your browser.
+        See the project's <code>README.md</code> for setup instructions.
+      </p>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--primary" id="closeAbout2">Got it</button>
+    </div>
+  </div>
+</div>
+
+<!-- Favorites drawer -->
+<div class="drawer-overlay" id="drawerOverlay" hidden>
+  <aside class="drawer" role="dialog" aria-label="Saved projects">
+    <div class="drawer__header">
+      <h2>Saved projects</h2>
+      <button class="icon-btn" id="closeDrawer" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="drawer__body" id="drawerBody">
+      <!-- populated by JS -->
+    </div>
+  </aside>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="index.js"></script>
+</body>
+</html>
