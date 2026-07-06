@@ -168,6 +168,18 @@
   function setGenerating(isGenerating) {
     generateBtn.disabled = isGenerating;
     generateBtn.style.opacity = isGenerating ? '0.7' : '1';
+
+    // Lock the whole build sheet so selections can't change mid-request —
+    // the profile that gets sent should be exactly what the user sees.
+    const blueprint = $('#blueprintForm');
+    blueprint.classList.toggle('is-locked', isGenerating);
+    blueprint.querySelectorAll('.tag').forEach((el) => { el.disabled = isGenerating; });
+    blueprint.querySelectorAll('input.text-input').forEach((el) => { el.disabled = isGenerating; });
+
+    const retryBtn = $('#retryBtn');
+    if (retryBtn) retryBtn.disabled = isGenerating;
+    const regenBtn = $('#regenerateBtn');
+    if (regenBtn) regenBtn.disabled = isGenerating;
   }
 
   /* ============ Generate flow ============ */

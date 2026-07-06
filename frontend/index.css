@@ -145,6 +145,10 @@ body{
   border-radius: var(--radius-lg);
   padding: 28px;
   box-shadow: var(--shadow-soft);
+  transition: opacity .2s ease;
+}
+.blueprint.is-locked{
+  opacity: 0.75;
 }
 .blueprint__header{
   display: flex;
@@ -192,6 +196,7 @@ body{
   user-select: none;
 }
 .tag:hover{ border-color: #3A4150; color: var(--text-primary); }
+.tag:disabled{ opacity: 0.5; cursor: not-allowed; pointer-events: none; }
 .tag.is-selected{
   background: var(--ember-soft);
   border-color: rgba(255,122,69,0.5);
@@ -219,6 +224,7 @@ body{
 .text-input--small{ margin-top: 10px; }
 .text-input:focus{ outline: none; border-color: var(--ember); }
 .text-input::placeholder{ color: var(--text-muted); }
+.text-input:disabled{ opacity: 0.5; cursor: not-allowed; }
 .field-note{ font-size: 0.78rem; color: var(--text-muted); margin: 8px 0 18px; }
 .field-note code{ font-family: var(--font-mono); background: var(--surface-3); padding: 1px 5px; border-radius: 4px; }
 
